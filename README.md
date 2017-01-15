@@ -27,6 +27,10 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 - Windows is the only tested operating system.
 - GPU is not tested.
 
+# How It Works
+
+Upon starting, the client application creates the enviroment and agents. It sends data from the agent eyes to the server (one agent at a time). Server returns an action to take for that agent. Then the agent calculates the reward and puts together a transition (state, action, reward, next state) to Caffe server. Caffe server stores this transition in the replay memory. When there are enough transitions to start the training, Caffe server trains the network in batches when it is idle. Client app goes back to process another available agent.
+
 # Developer's Guide
 
 1. Download Caffe according to instructions and build it using \scripts\build_win.cmd
@@ -41,13 +45,13 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 
 # To Run
 
-0. Build caffe-server application.
-1. Run 'npm install' to get node-modules folder.
-2. Run 'ng build' to build the front-end.
-3. From the dist folder run 'node server.js'.
-4. Copy Caffe model/solver files from 'caffe_server\models' to 'caffe_server\build\x64\Release'.
-5. From the 'caffe_server\build\x64\Release', run caffe_network.exe.
-6. From the browser point to 'localhost:3000'.
+1. Build caffe-server application.
+2. Copy Caffe model/solver files from 'caffe_server\models' to 'caffe_server\build\x64\Release'.
+3. Run 'npm install' in 'caffe_client' folder to get node modules.
+4. Run 'ng build' in 'caffe_client' folder to build the front-end.
+5. Run 'node server.js' in 'caffe_client\dist' folder.
+6. Run 'caffe_network.exe'in 'caffe_server\build\x64\Release' folder.
+7. From the browser point to 'localhost:3000'.
 
 # TODO
 
