@@ -2,7 +2,7 @@
 
 The goal of this project is to develop a multi-agent deep Q learning enviroment and front-end agents on the browser and Caffe as the back-end server.
 
-Inspired by [ConvNetJS Deep Q Learning Demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html) and [muupan/dqn-in-the-caffe](https://github.com/muupan/dqn-in-the-caffe). This project is a replicate of ConvNetJS and using some of the algorithms from the original demo.
+Inspired by [ConvNetJS Deep Q Learning Demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html) and [muupan/dqn-in-the-caffe](https://github.com/muupan/dqn-in-the-caffe). This project is a replicate of the ConvNetJS demo and uses some of the algorithms from the original demo.
 
 A part of this project is generated with [angular-cli](https://github.com/angular/angular-cli) version 1.0.0-beta.24.
 
