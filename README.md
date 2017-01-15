@@ -1,5 +1,5 @@
-# Multi-Agent Deep Q Learning With Caffe 
-==
+# Multi-Agent Deep Q Learning With Caffe
+
 The goal of this project is to develop a multi-agent deep Q learning enviroment and front-end agents on the browser and Caffe as the back-end server.
 
 Inspired by [ConvNetJS Deep Q Learning Demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html) and [muupan/dqn-in-the-caffe](https://github.com/muupan/dqn-in-the-caffe)
@@ -9,10 +9,10 @@ A part of this project is generated with [angular-cli](https://github.com/angula
 ![screen-shot](https://github.com/omidsakhi/mdqn-caffe/blob/master/screenshot.png)
 
 # Status (WIP)
+
 Both the front-end and the back-end of the project compile well (**albeit with much effort**). However, while everything works fine, there is still no sign of inteligence in the agents. With some love from the fans, we can debug it. All suggestions are welcome.
 
 # Requirments
-==
 
 - [Caffe](https://github.com/BVLC/caffe/tree/windows), *commit: 8bb7cbc2162ded85802d61f83b5ac2881f21a7fd*
 - [CUDA 8](https://developer.nvidia.com/cuda-toolkit)
@@ -23,13 +23,11 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 - Visual Studio 2015
 
 # Notes
-==
 
 - Windows is the only tested operating system.
 - GPU is not tested.
 
 # Developer's Guide
-==
 
 1. Download Caffe according to instructions and build it using \scripts\build_win.cmd
 2. Install Node.js and Angular CLI
@@ -42,7 +40,6 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 9. Get ready to run.
 
 # To Run
-==
 
 0. Build caffe-server application.
 1. Run 'npm install' to get node-modules folder.
@@ -53,7 +50,6 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 6. From the browser point to 'localhost:3000'.
 
 # TODO
-==
 
 - To build the caffe-server solution/project using CMAKE.
 - To debug the neural network logic.
