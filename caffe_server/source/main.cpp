@@ -10,9 +10,11 @@ DEFINE_bool(gpu, false, "Use GPU");
 DEFINE_int32(device, -1, "GPU device");
 DEFINE_string(model, "", "Model file to load");
 DEFINE_string(solver, "solver.prototxt", "Solver parameter file (*.prototxt)");
-DEFINE_int32(memory, 30000, "Capacity of replay memory");
-DEFINE_double(gamma, 0.95, "Discount factor of future rewards (0,1]");
-DEFINE_int32(learn, 3000, "Stat learning threshold");
+DEFINE_int32(memory, 3000, "Capacity of replay memory");
+DEFINE_double(gamma, 0.7, "Discount factor of future rewards (0,1]");
+DEFINE_int32(learn, 300, "Stat learning threshold");
+DEFINE_double(epsilon, 0.5, "Initial epsilon");
+DEFINE_int32(batch, 64, "Batch size");
 
 int main(int argc, char** argv)
 {
@@ -23,7 +25,7 @@ int main(int argc, char** argv)
 		
 
 	CaffeNetwork cnet(FLAGS_solver,FLAGS_memory);
-	cnet.Initialize(27,5,32,FLAGS_gamma, 0.5);
+	cnet.Initialize(27,5,FLAGS_batch,FLAGS_gamma,FLAGS_epsilon);
 
 	if (FLAGS_gpu)
 		cnet.SetBrewMode(caffe::Caffe::GPU);

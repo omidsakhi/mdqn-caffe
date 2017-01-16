@@ -1,0 +1,5 @@
+/caffe_server/build/.vs
+/caffe_server/build/x64/Release/*.bin
+/caffe_server/build/x64/Release/*.dll
+/caffe_server/build/*.opendb
+/caffe_server/build/*.db

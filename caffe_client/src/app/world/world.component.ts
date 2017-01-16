@@ -128,7 +128,8 @@ export class WorldComponent implements AfterViewInit {
     var oldPosition = a.position;
     a.applyAction(actionIndex);
     var wallCollision = this.collisionTest(oldPosition, a.position, true, false);
-    if (wallCollision != null) a.position = oldPosition;
+    if (wallCollision != null)     
+      a.position = oldPosition;     
     if (a.position.x < 0) a.position.x = 0;
     if (a.position.x > this.width) a.position.x = this.width;
     if (a.position.y < 0) a.position.y = 0;
@@ -138,7 +139,7 @@ export class WorldComponent implements AfterViewInit {
       if (d < (f.radius + a.radius)) {
         var wallCollision = this.collisionTest(a.position, f.position, true, false);
         if (wallCollision == null) {
-          a.digestionSignal += f.rancid() ? -6.0 : 5.0;
+          a.eatFood(f);          
           this.foods.splice(this.foods.indexOf(f), 1);
           break;
         }

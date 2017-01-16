@@ -1,5 +1,6 @@
 import { Eye, SensedType } from './eye'
 import { Vec } from './vec'
+import { Food } from './food'
 
 export enum AgentState {
     Ready,
@@ -18,8 +19,8 @@ export class Agent {
     public eyes: Eye[] = [];
     public actions: Action[];
     public digestionSignal: number = 0.0;
-    public lastReward: number = 0.0;
-    public currentAction: Action = new Action(0.0, 0.0);
+    public lastReward: number = 0.0;    
+    public currentAction: Action = new Action(0.0, 0.0);    
     public oldInputs: number[] = [];
 
     constructor(
@@ -55,7 +56,9 @@ export class Agent {
         }
         return inputArray;
     }
-
+    eatFood(f:Food) {
+        this.digestionSignal += f.rancid() ? -6.0 : 5.0;
+    }
     reward(): number {
         var proximityReward = 0.0;
         for (let e of this.eyes)
@@ -69,7 +72,7 @@ export class Agent {
 
         this.lastReward = proximityReward + forwardReward + this.digestionSignal;
 
-        this.digestionSignal = 0.1 * this.digestionSignal;        
+        this.digestionSignal = 0.0;        
 
         return this.lastReward;
     }

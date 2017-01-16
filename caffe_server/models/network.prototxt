@@ -18,16 +18,16 @@ layer {
   top: "target_layer_dummy"
   memory_data_param {
     batch_size: 32
-    channels: 1
-    height: 5
+    channels: 5
+    height: 1
     width: 1
   }
 }
 layer {
   name: "silence_layer"
-  type: "Silence"
-  bottom: "target_layer_dummy"
+  type: "Silence"  
   bottom: "input_layer_dummy"
+  bottom: "target_layer_dummy"
 }
 layer {
   name: "ip1_layer"
@@ -90,7 +90,7 @@ layer {
   name: "ip3_relu_layer"
   type: "ReLU"
   bottom: "ip3_layer_output"
-  top: "ip3_relu_layer_output"
+  top: "network_output"
   relu_param {
     negative_slope: 0.01
   }
@@ -98,7 +98,7 @@ layer {
 layer {
   name: "loss_layer"
   type: "EuclideanLoss"
-  bottom: "ip3_relu_layer_output"
+  bottom: "network_output"
   bottom: "target_layer_output"
   top: "loss_layer_output"
 }
