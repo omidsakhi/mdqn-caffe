@@ -1,6 +1,6 @@
 import { Eye, SensedType } from './eye'
 import { Vec } from './vec'
-import { Food } from './food'
+import { Food, FoodType } from './food'
 
 export enum AgentState {
     Ready,
@@ -24,9 +24,11 @@ export class Agent {
     public oldInputs: number[] = [];
 
     constructor(
+        public name : string,
         public position: Vec,
         public radius: number = 10,
         public angle: number = 0,
+        public epsilon: number = 0.5 
     ) {
         this.id = this.genId();
         this.actions = [
@@ -57,7 +59,7 @@ export class Agent {
         return inputArray;
     }
     eatFood(f:Food) {
-        this.digestionSignal += f.rancid() ? -6.0 : 5.0;
+        this.digestionSignal += (f.type == FoodType.Bad) ? -6.0 : 5.0;
     }
     reward(): number {
         var proximityReward = 0.0;
@@ -72,7 +74,7 @@ export class Agent {
 
         this.lastReward = proximityReward + forwardReward + this.digestionSignal;
 
-        this.digestionSignal = 0.0;        
+        this.digestionSignal -= 0.1 * this.digestionSignal;        
 
         return this.lastReward;
     }

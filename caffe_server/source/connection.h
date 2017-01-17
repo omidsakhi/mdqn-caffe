@@ -48,13 +48,14 @@ private:
 			std::string type = data->get_map()["type"]->get_string();
 			if (type == "input") {
 				std::string id = data->get_map()["agent_id"]->get_string();
+				double epsilon = data->get_map()["epsilon"]->get_double();
 				answer = sio::object_message::create();
 				answer->get_map()["agent_id"] = sio::string_message::create(id);
 				answer->get_map()["type"] = sio::string_message::create("action");
 				auto a = data->get_map()["input"]->get_vector();
 				std::vector<float> inputs(27);
 				std::transform(a.begin(), a.end(), inputs.begin(), [&](auto m) { return m->get_double(); });
-				answer->get_map()["action_index"] = sio::int_message::create(_cnet.SelectAction(inputs));
+				answer->get_map()["action_index"] = sio::int_message::create(_cnet.SelectAction(inputs,epsilon));
 			}
 			else if (type == "transition") {
 				Transition t;
@@ -67,10 +68,6 @@ private:
 				t.action = (Action) data->get_map()["action_index"]->get_int();
 				t.reward = data->get_map()["reward"]->get_double();				
 				_cnet.AddTransition(t);
-			}
-			else if (type == "epsilon")	{
-				double epsilon = data->get_map()["epsilon"]->get_double();
-				_cnet.SetEpsilon(epsilon);
 			}
 			else if (type == "snapshot") {
 				time_t rawtime;

@@ -3,7 +3,7 @@ import * as d3Scale from 'd3-scale'
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { Vec } from '../vec'
 import { Segment, IIntersectionResult } from '../segment'
-import { Food } from '../food'
+import { Food, FoodType } from '../food'
 import { Agent, AgentState } from '../agent'
 import { Eye, SensedType } from '../eye'
 import { DataService } from '../data.service'
@@ -24,7 +24,6 @@ export class WorldComponent implements AfterViewInit {
   public eyeChartY: any;
 
   public tickIntervalFreq: number = 60;
-  public epsilon: number = 0.5;
   public height: number;
   public width: number;
   public context: CanvasRenderingContext2D;
@@ -32,7 +31,13 @@ export class WorldComponent implements AfterViewInit {
   public walls: Segment[] = [];
   public agents: Agent[] = [];
   public foods: Food[] = [];
-  public miceImage: any;  
+  public miceImage: any;
+
+  public textColor : string = "#333";
+  public wallColor : string = "#1047A9";
+  public agentColor : string[] = ["#E366B5","#C7007D"];
+  public foodColor : string[] = ["#CFF76F","#A8F000"];
+  public poisonColor : string[] = ["#FFCE73","#FFA500"];
 
   @ViewChild("worldCanvas") worldCanvas: ElementRef;
   constructor(private dataService: DataService) { }
@@ -59,14 +64,15 @@ export class WorldComponent implements AfterViewInit {
             this.randf(20, this.width - 20),
             this.randf(20, this.height - 20))
           , 10,
-          this.randi(50000, 150000),
-          this.randi(150000, 300000)
+          this.randi(0, 2)
         )
       );
   }
   createAgents() {
-    this.agents.push(new Agent(new Vec(50, 50)));
-    this.agents.push(new Agent(new Vec(70, 50)));
+    this.agents.push(new Agent("A009", new Vec(30, 30), 10, 0, 0.9));
+    this.agents.push(new Agent("A005", new Vec(this.width - 30, this.height - 30), 10, 0, 0.5));
+    this.agents.push(new Agent("A003", new Vec(this.width - 30, 30), 10, 0, 0.3));
+    this.agents.push(new Agent("A001", new Vec(30, this.height - 30), 10, 0, 0.1));
     for (let a of this.agents) {
       this.processEyes(a);
       this.dataService.registerAgent(a);
@@ -100,22 +106,16 @@ export class WorldComponent implements AfterViewInit {
       }
     })
   }
+
   randi(min, max): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
   randf(min, max): number {
     return Math.random() * (max - min) + min;
   }
+
   restart() {
     setTimeout(() => { this.tick() }, 1000.0 / this.tickIntervalFreq);
-  }
-  processFoodAge() {
-    for (var i = this.foods.length - 1; i > -1; i--) {
-      var food = this.foods[i];
-      food.age += this.tickIntervalFreq;
-      if (food.age > food.expireAge)
-        this.foods.splice(i, 1);
-    }
   }
   processEyes(a: Agent) {
     for (let e of a.eyes) {
@@ -128,8 +128,8 @@ export class WorldComponent implements AfterViewInit {
     var oldPosition = a.position;
     a.applyAction(actionIndex);
     var wallCollision = this.collisionTest(oldPosition, a.position, true, false);
-    if (wallCollision != null)     
-      a.position = oldPosition;     
+    if (wallCollision != null)
+      a.position = oldPosition;
     if (a.position.x < 0) a.position.x = 0;
     if (a.position.x > this.width) a.position.x = this.width;
     if (a.position.y < 0) a.position.y = 0;
@@ -139,7 +139,7 @@ export class WorldComponent implements AfterViewInit {
       if (d < (f.radius + a.radius)) {
         var wallCollision = this.collisionTest(a.position, f.position, true, false);
         if (wallCollision == null) {
-          a.eatFood(f);          
+          a.eatFood(f);
           this.foods.splice(this.foods.indexOf(f), 1);
           break;
         }
@@ -147,7 +147,10 @@ export class WorldComponent implements AfterViewInit {
     }
     var reward = a.reward();
     this.processEyes(a);
-    this.dataService.sendTransition(a, a.oldInputs, actionIndex, reward, a.getInputs());
+
+    if (a.epsilon > 0.15)
+      this.dataService.sendTransition(a, a.oldInputs, actionIndex, reward, a.getInputs());
+
     a.state = AgentState.Ready;
   }
   findAgent(id: string): Agent {
@@ -163,7 +166,6 @@ export class WorldComponent implements AfterViewInit {
     this.draw();
   }
   tick() {
-    this.processFoodAge();
     for (let a of this.agents)
       if (a.state == AgentState.Ready) {
         a.state = AgentState.Waiting;
@@ -194,7 +196,7 @@ export class WorldComponent implements AfterViewInit {
         var food = this.foods[i];
         var res = segment.circleIntersect(food.position, food.radius);
         if (res !== null) {
-          res.type = food.rancid() ? SensedType.BadFood : SensedType.GoodFood;
+          res.type = (food.type == FoodType.Bad) ? SensedType.BadFood : SensedType.GoodFood;
           if (minres == null)
             minres = res;
           else if (res.ua < minres.ua)
@@ -207,7 +209,7 @@ export class WorldComponent implements AfterViewInit {
   }
   drawWalls() {
     this.context.lineWidth = 1;
-    this.context.strokeStyle = "rgb(0,0,0)";
+    this.context.strokeStyle = this.wallColor;
     this.context.beginPath();
     for (let w of this.walls) {
       this.context.moveTo(w.p1.x, w.p1.y);
@@ -216,10 +218,18 @@ export class WorldComponent implements AfterViewInit {
     this.context.stroke();
   }
   drawFood() {
-    this.context.lineWidth = 1;
-    this.context.strokeStyle = "rgb(0,0,0)";
+    this.context.lineWidth = 2;    
     for (let f of this.foods) {
-      this.context.fillStyle = (f.rancid() == true) ? "rgb(255, 150, 150)" : "rgb(150, 255, 150)";
+      if (f.type == FoodType.Bad)
+      {
+          this.context.fillStyle = this.poisonColor[0];
+          this.context.strokeStyle = this.poisonColor[1];
+      }      
+      else
+      {
+          this.context.fillStyle = this.foodColor[0];
+          this.context.strokeStyle = this.foodColor[1];        
+      }
       this.context.beginPath();
       this.context.arc(f.position.x, f.position.y, f.radius, 0, Math.PI * 2, true);
       this.context.fill();
@@ -227,24 +237,24 @@ export class WorldComponent implements AfterViewInit {
     }
   }
   drawAgents() {
-  
+
     for (let a of this.agents) {
       this.context.lineWidth = 1;
-      this.context.fillStyle = "#ccc";
+      this.context.fillStyle = this.textColor;
 
       for (let e of a.eyes) {
         if (e.sensedType === SensedType.Nothing) {
           this.context.setLineDash([5, 15]);
-          this.context.strokeStyle = "rgb(0,0,0)";
+          this.context.strokeStyle = this.textColor;
         } else if (e.sensedType === SensedType.Wall) {
           this.context.setLineDash([5, 10]);
-          this.context.strokeStyle = "rgb(255,0,0)";
+          this.context.strokeStyle = this.wallColor;
         } else if (e.sensedType === SensedType.GoodFood) {
           this.context.setLineDash([]);
-          this.context.strokeStyle = "rgb(150,255,150)";
+          this.context.strokeStyle = this.foodColor[1];
         } else if (e.sensedType === SensedType.BadFood) {
           this.context.setLineDash([]);
-          this.context.strokeStyle = "rgb(255,150,150)";
+          this.context.strokeStyle = this.poisonColor[1];
         }
         this.context.beginPath();
         this.context.moveTo(a.position.x, a.position.y);
@@ -253,16 +263,17 @@ export class WorldComponent implements AfterViewInit {
       }
 
       this.context.setLineDash([]);
-      this.context.strokeStyle = "#666";
+      this.context.fillStyle = this.agentColor[0];
+      this.context.strokeStyle = this.agentColor[1];
       this.context.lineWidth = 4;
       this.context.beginPath();
       this.context.arc(a.position.x, a.position.y, a.radius, 0, Math.PI * 2, true);
       this.context.fill();
       this.context.stroke();
-
-      this.context.fillStyle = "#111";
+      
       this.context.font = "8px Arial";
-      this.context.fillText(a.lastReward.toFixed(2),a.position.x + a.radius * 2 + 5,a.position.y);
+      this.context.fillText(a.name, a.position.x + a.radius * 2 + 3, a.position.y - 5);
+      this.context.fillText(a.lastReward.toFixed(2), a.position.x + a.radius * 2 + 3, a.position.y + 5);
 
     }
 
@@ -273,9 +284,6 @@ export class WorldComponent implements AfterViewInit {
     this.drawFood();
     this.drawAgents();
     this.eyeChart();
-  }
-  sendEpsilon() {
-    this.dataService.sendEpsilon(this.epsilon);
   }
   backupNetwork() {
     this.dataService.backupNetwork();
@@ -299,8 +307,15 @@ export class WorldComponent implements AfterViewInit {
       .attr("y", 0)
       .attr("width", this.eyeChartWidth / 27)
       .attr("height", d => { return this.eyeChartHeight - this.eyeChartY(d); })
-      .style("fill", "#6C8AD5")
-      .style("stroke", "#123EAB");
+      .style("fill", (d, i) => {
+        if (i % 3 == 0)
+          return this.wallColor;
+        else if (i % 3 == 1)
+          return this.foodColor[0];
+        else
+          return this.poisonColor[0];
+      })
+      .style("stroke", this.textColor);
 
     this.eyeChartSvg1.selectAll(".bar")
       .attr("height", d => { return this.eyeChartHeight - this.eyeChartY(d); });
@@ -313,8 +328,15 @@ export class WorldComponent implements AfterViewInit {
       .attr("y", 0)
       .attr("width", this.eyeChartWidth / 27)
       .attr("height", d => { return this.eyeChartHeight - this.eyeChartY(d); })
-      .style("fill", "#6C8AD5")
-      .style("stroke", "#123EAB");
+      .style("fill", (d, i) => {
+        if (i % 3 == 0)
+          return this.wallColor;
+        else if (i % 3 == 1)
+          return this.foodColor[0];
+        else
+          return this.poisonColor[0];
+      })
+      .style("stroke", this.textColor);
 
     this.eyeChartSvg2.selectAll(".bar")
       .attr("height", d => { return this.eyeChartHeight - this.eyeChartY(d); });

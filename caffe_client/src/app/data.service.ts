@@ -20,17 +20,11 @@ export class DataService {
     this.socket.emit('client-data', {
       agent_id : agent.id,
       type : "input",
-      input : inputs
+      input : inputs,
+      epsilon : agent.epsilon
     })
   }
   
-  sendEpsilon(eps: number) {
-    this.socket.emit('client-data', {
-      type : "epsilon",
-      epsilon : eps
-    })
-  }
-
   backupNetwork() {
     this.socket.emit('client-data', {
       type : "snapshot"      

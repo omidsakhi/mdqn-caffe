@@ -10,7 +10,7 @@ A part of this project is generated with [angular-cli](https://github.com/angula
 
 # Status (WIP)
 
-Both the front-end and the back-end of the project compile well (**albeit with much effort**). However, while everything works fine, there is still no sign of inteligence in the agents. With some love from the fans, we can debug it. All suggestions are welcome.
+Both the front-end and the back-end of the project compile well (**albeit with much effort**). However, while everything works fine, so far the agents have only been able to avoid walls. They are not able to differentiate between good food and bad food. There might be a sample bias issue here but needs more investigation. All suggestions are welcome.
 
 # Requirments
 
@@ -56,7 +56,7 @@ Upon starting, the client application creates the enviroment and agents. It send
 # TODO
 
 - To build the caffe-server solution/project using CMAKE.
-- To debug the neural network logic.
+- To improve the behaviour.
 - To improve caffe-server C++ program architecture. (threading and events)
 - To use protobuf to send data between server and clients.
 - To expand the commands for controlling Caffe network.

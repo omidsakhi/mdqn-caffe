@@ -46,14 +46,13 @@ public:
 		LOG(INFO) << "SetBrewMode";
 		caffe::Caffe::set_mode(brew);
 	}
-	void Initialize(int input_layer_size, int output_layer_size, int minibatch_size, double gamma, double epsilon) {		
-		_mutex.lock();
+	void Initialize(int input_layer_size, int output_layer_size, int minibatch_size, double gamma) {		
+		std::lock_guard<std::mutex> lock(_mutex);		
 
 		_input_layer_size = input_layer_size;
 		_output_layer_size = output_layer_size;
 		_minibatch_size = minibatch_size;		
-		_gamma = gamma;
-		_epsilon = epsilon;
+		_gamma = gamma;		
 		
 		LOG(INFO) << "Initialize";		
 		caffe::SolverParameter solver_param;
@@ -81,35 +80,31 @@ public:
 		LOG_IF(FATAL, HasBlobSize(*_output_blob, _minibatch_size, output_layer_size, 1, 1) == false) << "Output layer size error." << PrintBlobSize(*_output_blob);
 
 		LOG(INFO) << "Initialize [Done]";		
-
-		_mutex.unlock();
+		
 	}
 	void LoadTrainedModel(const std::string& model_bin_filename)
 	{
-		LOG(INFO) << "Loading Trained Model ...";
-		_mutex.lock();
-		_net->CopyTrainedLayersFrom(model_bin_filename);		
-		_mutex.unlock();
+		std::lock_guard<std::mutex> lock(_mutex);
+		LOG(INFO) << "Loading Trained Model ...";		
+		_net->CopyTrainedLayersFrom(model_bin_filename);				
 	}
 	void RestoreSolver(const std::string& solver_bin_filename) {
-		LOG(INFO) << "Restoring Solver ...";
-		_mutex.lock();
-		_solver->Restore(solver_bin_filename.c_str());
-		_mutex.unlock();
+		std::lock_guard<std::mutex> lock(_mutex);
+		LOG(INFO) << "Restoring Solver ...";		
+		_solver->Restore(solver_bin_filename.c_str());		
 	}
 	void SaveTrainedModel(const std::string& model_bin_filename) {
-		LOG(INFO) << "Saving Trained Model ...";		
-		_mutex.lock();		
+		std::lock_guard<std::mutex> lock(_mutex);
+		LOG(INFO) << "Saving Trained Model ...";				
 		caffe::NetParameter net_param;
 		_net->ToProto(&net_param);
-		caffe::WriteProtoToBinaryFile(net_param, model_bin_filename);
-		_mutex.unlock();
+		caffe::WriteProtoToBinaryFile(net_param, model_bin_filename);		
 	}
-	Action SelectAction(const std::vector<float> &input) {
-		_mutex.lock();		
+	Action SelectAction(const std::vector<float> &input, double epsilon) {
+		std::lock_guard<std::mutex> lock(_mutex);		
 		//LOG_IF(FATAL, _epsilon < 0.0 || _epsilon > 1.0) << "Epsilon " << _epsilon << " is out of range.";		
 		Action action;
-		if (std::uniform_real_distribution<>(0.0, 1.0)(_random_engine) < _epsilon) {
+		if (std::uniform_real_distribution<>(0.0, 1.0)(_random_engine) < epsilon) {
 			//LOG(INFO) << "SelectAction - Random";
 			action = (Action)std::uniform_int_distribution<int>(0, _output_layer_size-1)(_random_engine);
 		}
@@ -120,8 +115,7 @@ public:
 			std::vector<float> outputs = Predict(input,1).front();			
 			action = (Action)std::distance(outputs.begin(), std::max_element(outputs.begin(), outputs.end()));
 		}
-		//LOG_IF(FATAL, static_cast<int> (action) >= _output_layer_size) << "Action " << action << " is greater than number of outputs (" << _output_layer_size << ").";
-		_mutex.unlock();
+		//LOG_IF(FATAL, static_cast<int> (action) >= _output_layer_size) << "Action " << action << " is greater than number of outputs (" << _output_layer_size << ").";		
 		return action;
 	}	
 	void PrintVector(std::string prefix, const std::vector<float> &vec) {
@@ -132,6 +126,7 @@ public:
 		LOG(INFO) << prefix << " " << buf.str();		
 	}
 	void AddTransition(const Transition &t) {
+		std::lock_guard<std::mutex> lock(_mutex);
 		if (_replay_memory.size() == _replay_memory_capacity)
 			_replay_memory.pop_front();
 		_replay_memory.push_back(t);	
@@ -140,7 +135,7 @@ public:
 		//LOG(INFO) << "REWARD " << t.reward << " ACTION " << t.action;
 	}
 	void Update() {
-		_mutex.lock();		
+		std::lock_guard<std::mutex> lock(_mutex);
 
 		std::vector<int> indicies(_minibatch_size);		
 		for (auto i = 0; i < _minibatch_size; ++i)
@@ -171,7 +166,7 @@ public:
 			const auto max_idx = std::distance(outputs.begin(), std::max_element(outputs.begin(), outputs.end()));
 			const auto target = reward + _gamma * outputs[max_idx];
 			LOG_IF(FATAL, std::isnan(target));
-			//LOG(INFO) << "REWARD " << reward << " GAMMA " << _gamma << " OUTPUT " << outputs[max_idx] << " MAXID " << max_idx << " TARGET " << target << " I " << i;
+			//LOG(INFO) << "REWARD " << reward << " OUTPUT " << outputs[max_idx] << " TARGET " << target << " I " << i;
 			for (int j=0; j < _output_layer_size; ++j)
 				target_batch[i * _output_layer_size + j] = batch_results_1[i][j];
 			target_batch[i * _output_layer_size + static_cast<int>(action)] = (float) target;
@@ -180,15 +175,11 @@ public:
 		LOG_IF(FATAL, target_batch.size() != _minibatch_size * _output_layer_size) << "TargetLayerData " << target_batch.size() << " != BatchSize " << _minibatch_size << " * OutputLayerSize" << _output_layer_size;
 		_input_layer->Reset(const_cast<float*> (input_batch_state_1.data()), const_cast<float*> (input_batch_state_1.data()), _input_layer_size * _minibatch_size);
 		_target_layer->Reset(const_cast<float*> (target_batch.data()), const_cast<float*> (target_batch.data()), _output_layer_size * _minibatch_size);
-		_solver->Step(1);
-		_mutex.unlock();
+		_solver->Step(1);		
 	}
-	size_t ReplayMemorySize() const {
+	size_t ReplayMemorySize() {
+		std::lock_guard<std::mutex> lock(_mutex);
 		return _replay_memory.size();
-	}
-	void SetEpsilon(double epsilon) {
-		LOG(INFO) << "SetEpsilon " << epsilon;
-		_epsilon = epsilon;
 	}
 private:
 	void SetMinibatchSize(int batch_size) {
@@ -235,6 +226,5 @@ private:
 	int _input_layer_size;
 	int _output_layer_size;
 	int _minibatch_size;
-	double _gamma;
-	double _epsilon;	
+	double _gamma;	
 };
