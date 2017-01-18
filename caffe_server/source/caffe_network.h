@@ -101,21 +101,16 @@ public:
 		caffe::WriteProtoToBinaryFile(net_param, model_bin_filename);		
 	}
 	Action SelectAction(const std::vector<float> &input, double epsilon) {
-		std::lock_guard<std::mutex> lock(_mutex);		
-		//LOG_IF(FATAL, _epsilon < 0.0 || _epsilon > 1.0) << "Epsilon " << _epsilon << " is out of range.";		
+		LOG_IF(FATAL, input.size() != _input_layer_size) << "Input size error.";
+		std::lock_guard<std::mutex> lock(_mutex);
 		Action action;
-		if (std::uniform_real_distribution<>(0.0, 1.0)(_random_engine) < epsilon) {
-			//LOG(INFO) << "SelectAction - Random";
+		if (std::uniform_real_distribution<>(0.0, 1.0)(_random_engine) < epsilon) {			
 			action = (Action)std::uniform_int_distribution<int>(0, _output_layer_size-1)(_random_engine);
 		}
-		else {			
-			//LOG(INFO) << "SelectAction - Greedy";
-			//std::vector<std::vector<float>> samples;
-			//samples.push_back(input);
+		else {						
 			std::vector<float> outputs = Predict(input,1).front();			
 			action = (Action)std::distance(outputs.begin(), std::max_element(outputs.begin(), outputs.end()));
-		}
-		//LOG_IF(FATAL, static_cast<int> (action) >= _output_layer_size) << "Action " << action << " is greater than number of outputs (" << _output_layer_size << ").";		
+		}		
 		return action;
 	}	
 	void PrintVector(std::string prefix, const std::vector<float> &vec) {
@@ -127,6 +122,8 @@ public:
 	}
 	void AddTransition(const Transition &t) {
 		std::lock_guard<std::mutex> lock(_mutex);
+		LOG_IF(FATAL, t.currentState.size() != _input_layer_size) << "CurrentState size error.";
+		LOG_IF(FATAL, t.nextState.size() != (_input_layer_size)) << "NextState size error.";
 		if (_replay_memory.size() == _replay_memory_capacity)
 			_replay_memory.pop_front();
 		_replay_memory.push_back(t);	
@@ -146,7 +143,7 @@ public:
 		for (auto i = 0; i < indicies.size(); ++i)
 		{
 			auto idx = indicies[i];			
-			for (int j = 0; j < _output_layer_size; ++j)
+			for (int j = 0; j < _input_layer_size; ++j)
 			{
 				input_batch_state_1[i*_input_layer_size + j] = _replay_memory[idx].currentState[j];
 				input_batch_state_2[i*_input_layer_size + j] = _replay_memory[idx].nextState[j];

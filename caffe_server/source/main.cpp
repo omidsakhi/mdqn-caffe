@@ -7,6 +7,7 @@
 #include <glog/logging.h>
 
 DEFINE_bool(gpu, false, "Use GPU");
+DEFINE_bool(evaluate, false, "Evaluation only");
 DEFINE_int32(device, -1, "GPU device");
 DEFINE_string(model, "", "Model file to load");
 DEFINE_string(solver, "solver.prototxt", "Solver parameter file (*.prototxt)");
@@ -44,7 +45,7 @@ int main(int argc, char** argv)
 
 	while (true)
 	{
-		if (cnet.ReplayMemorySize() > FLAGS_learn)
+		if (FLAGS_evaluate == false &&  cnet.ReplayMemorySize() > FLAGS_learn)
 		{
 			cnet.Update();			
 			std::this_thread::sleep_for(std::chrono::microseconds(10));

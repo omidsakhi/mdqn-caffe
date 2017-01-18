@@ -1,6 +1,6 @@
 # Multi-Agent Deep Q Learning With Caffe
 
-The goal of this project is to develop a multi-agent deep Q learning enviroment and front-end agents on the browser and Caffe as the back-end server.
+The goal of this project is to develop a multi-agent deep Q learning enviroment with front-end agents on the browser and Caffe as the back-end server.
 
 Inspired by [ConvNetJS Deep Q Learning Demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html) and [muupan/dqn-in-the-caffe](https://github.com/muupan/dqn-in-the-caffe). This project is a replicate of the ConvNetJS demo and uses some of the algorithms from the original demo.
 
@@ -10,7 +10,7 @@ A part of this project is generated with [angular-cli](https://github.com/angula
 
 # Status (WIP)
 
-Both the front-end and the back-end of the project compile well (**albeit with much effort**). However, while everything works fine, so far the agents have only been able to avoid walls. They are not able to differentiate between good food and bad food. There might be a sample bias issue here but needs more investigation. All suggestions are welcome.
+Both the front-end and the back-end of the project compile well (**albeit with much effort**). It performs well after 3 minues of training with CPU. Even no temporal memory is used in this implementation.
 
 # Requirments
 
@@ -56,8 +56,9 @@ Upon starting, the client application creates the enviroment and agents. It send
 # TODO
 
 - To build the caffe-server solution/project using CMAKE.
-- To improve the behaviour.
+- To add temporal memory to agents.
 - To improve caffe-server C++ program architecture. (threading and events)
+- To use chi square distribution for replay memory sampling.
 - To use protobuf to send data between server and clients.
 - To expand the commands for controlling Caffe network.
 - To develop more debugging front-end tools like the ones that are developed using D3.

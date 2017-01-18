@@ -22,6 +22,8 @@ export class Agent {
     public lastReward: number = 0.0;    
     public currentAction: Action = new Action(0.0, 0.0);    
     public oldInputs: number[] = [];
+    public totalGoodFood : number = 0;
+    public totalBadFood : number = 0;
 
     constructor(
         public name : string,
@@ -59,7 +61,15 @@ export class Agent {
         return inputArray;
     }
     eatFood(f:Food) {
-        this.digestionSignal += (f.type == FoodType.Bad) ? -6.0 : 5.0;
+        if (f.type == FoodType.Bad)
+        {
+            this.digestionSignal -= 7.0;
+            this.totalBadFood ++;
+        }
+        else {
+            this.digestionSignal += 5.0;    
+            this.totalGoodFood ++;
+        }        
     }
     reward(): number {
         var proximityReward = 0.0;

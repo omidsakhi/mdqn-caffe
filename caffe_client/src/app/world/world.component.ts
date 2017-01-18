@@ -272,8 +272,10 @@ export class WorldComponent implements AfterViewInit {
       this.context.stroke();
       
       this.context.font = "8px Arial";
-      this.context.fillText(a.name, a.position.x + a.radius * 2 + 3, a.position.y - 5);
-      this.context.fillText(a.lastReward.toFixed(2), a.position.x + a.radius * 2 + 3, a.position.y + 5);
+      this.context.fillText(a.name, a.position.x + a.radius * 2 + 3, a.position.y - 15);
+      this.context.fillText(a.lastReward.toFixed(2), a.position.x + a.radius * 2 + 3, a.position.y - 5);
+      this.context.fillText(a.totalGoodFood.toString(), a.position.x + a.radius * 2 + 3, a.position.y + 5);
+      this.context.fillText(a.totalBadFood.toString(), a.position.x + a.radius * 2 + 3, a.position.y + 15);
 
     }
 
