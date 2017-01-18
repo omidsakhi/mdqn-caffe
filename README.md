@@ -15,8 +15,8 @@ Both the front-end and the back-end of the project compile well (**albeit with m
 # Requirments
 
 - [Caffe](https://github.com/BVLC/caffe/tree/windows), *commit: 8bb7cbc2162ded85802d61f83b5ac2881f21a7fd*
-- [CUDA 8](https://developer.nvidia.com/cuda-toolkit)
-- [cuDNN - cudnn-8.0-windows10-x64-v5.1](https://developer.nvidia.com/cudnn)
+- [CUDA 8](https://developer.nvidia.com/cuda-toolkit) (Optional)
+- [cuDNN - cudnn-8.0-windows10-x64-v5.1](https://developer.nvidia.com/cudnn) (Optional)
 - [Node.js](https://nodejs.org/en/)
 - [Angular CLI](https://cli.angular.io/)
 - [socket.io-client-cpp](https://github.com/socketio/socket.io-client-cpp) *commit: 725a8e0e17ecead64574fd9879bd7029b0bf25fa*
