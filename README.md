@@ -48,4 +48,4 @@ Nothing here is worth resurrecting as active code; the repository stays online a
 
 ## License
 
-MIT (see [LICENSE](LICENSE)).
+BSD 3-Clause (see [LICENSE](LICENSE)).
